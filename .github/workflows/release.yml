@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${{ github.ref_name }}"
+          # Strip leading 'v' if present
+          VERSION="${TAG#v}"
+          # Convert to 4-part format (e.g. 1.2.3 → 1.2.3.0)
+          PARTS=$(echo "$VERSION" | tr '.' '\n' | wc -l)
+          if [ "$PARTS" -eq 3 ]; then
+            VERSION="${VERSION}.0"
+          elif [ "$PARTS" -eq 2 ]; then
+            VERSION="${VERSION}.0.0"
+          elif [ "$PARTS" -eq 1 ]; then
+            VERSION="${VERSION}.0.0.0"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Update manifest version
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          node -e "
+            const fs = require('fs');
+            const path = 'dev.frik.run-command.sdPlugin/manifest.json';
+            const manifest = JSON.parse(fs.readFileSync(path, 'utf8'));
+            manifest.Version = '$VERSION';
+            fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + '\n');
+            console.log('Updated Version to', '$VERSION');
+          "
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Package plugin
+        run: npx streamdeck pack dev.frik.run-command.sdPlugin
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Release ${{ steps.version.outputs.tag }}
+          files: "*.streamDeckPlugin"
+          generate_release_notes: true
