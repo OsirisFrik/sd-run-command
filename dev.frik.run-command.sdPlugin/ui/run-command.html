@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head lang="en">
+    <title>Run Command Settings</title>
+    <meta charset="utf-8" />
+    <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+  </head>
+
+  <body>
+    <sdpi-item label="Shell">
+      <sdpi-select setting="shell" default="cmd" hot-reload>
+        <option value="cmd">CMD</option>
+        <option value="powershell">PowerShell</option>
+      </sdpi-select>
+    </sdpi-item>
+
+    <sdpi-item id="profile-row" label="Profile">
+      <sdpi-textfield
+        setting="powershellProfile"
+        placeholder="C:\path\to\profile.ps1 (only for PowerShell)"
+      ></sdpi-textfield>
+    </sdpi-item>
+
+    <sdpi-item label="Command">
+      <sdpi-textarea
+        setting="command"
+        placeholder="echo Hello World"
+      ></sdpi-textarea>
+    </sdpi-item>
+  </body>
+</html>
