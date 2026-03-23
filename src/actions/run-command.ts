@@ -16,12 +16,6 @@ export class RunCommand extends SingletonAction<RunCommandSettings> {
     return ev.action.setTitle(label);
   }
 
-  override onDidReceiveSettings(
-    ev: DidReceiveSettingsEvent<RunCommandSettings>,
-  ): Promise<void> | void {
-    console.log(ev.payload.settings);
-  }
-
   override async onKeyDown(
     ev: KeyDownEvent<RunCommandSettings>,
   ): Promise<void> {
